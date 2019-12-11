@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix0;
 import 'package:provider/provider.dart';
 import '../providers/product.dart';
 import '../providers/cart.dart';
@@ -50,6 +51,7 @@ class ProductItem extends StatelessWidget {
                     color: Theme.of(context).accentColor,
                     onPressed: () {
                       cart.addItem(prod.id, prod.price, prod.title);
+                      Scaffold.of(context).hideCurrentSnackBar();
                       Scaffold.of(context).showSnackBar(SnackBar(
                         content: Text('Added item to card! '),
                         duration: Duration(seconds: 2),
