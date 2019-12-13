@@ -25,6 +25,7 @@ class _EditProductState extends State<EditProduct> {
   }
 
   var _isInit = true;
+  var _isLoading=false;
   var _initValues = {
     'title': '',
     'content': '',
@@ -34,10 +35,7 @@ class _EditProductState extends State<EditProduct> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
-      final productId = ModalRoute
-          .of(context)
-          .settings
-          .arguments as String;
+      final productId = ModalRoute.of(context).settings.arguments as String;
       if (productId != null) {
         _editProduct = Provider.of<ProductProvider>(context, listen: false)
             .findById(productId);
@@ -48,7 +46,7 @@ class _EditProductState extends State<EditProduct> {
           'price': _editProduct.price.toString(),
           'imageUrl': '',
         };
-        _imageUrlController.text=_editProduct.imageUrl;
+        _imageUrlController.text = _editProduct.imageUrl;
       }
     }
     _isInit = false;
@@ -78,14 +76,39 @@ class _EditProductState extends State<EditProduct> {
       return;
     }
     _form.currentState.save();
-    if(_editProduct.id!=null){
+    setState(() {
+      _isLoading=true;
+    });
+    if (_editProduct.id != null) {
       Provider.of<ProductProvider>(context, listen: false)
-          .updateProduct(_editProduct.id,_editProduct);
-    }else{
-    Provider.of<ProductProvider>(context, listen: false)
-        .addProduct(_editProduct);
-    Navigator.of(context).pop();
-  }
+          .updateProduct(_editProduct.id, _editProduct);
+      setState(() {
+        _isLoading=false;
+      });
+      Navigator.of(context).pop();
+    } else {
+      Provider.of<ProductProvider>(context, listen: false)
+          .addProduct(_editProduct)
+          .catchError((error) {
+        return showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('An error occurred!'),
+            content: Text('Something went wrong.'),
+            actions: <Widget>[
+              FlatButton(child: Text('Okay'), onPressed: () {
+                Navigator.of(ctx).pop();
+              },)
+            ],
+          ),
+        );
+      }).then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pop();
+      });
+    }
   }
 
   @override
@@ -102,7 +125,7 @@ class _EditProductState extends State<EditProduct> {
               })
         ],
       ),
-      body: Padding(
+      body: _isLoading ? Center(child: CircularProgressIndicator()):Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
           key: _form,
@@ -124,8 +147,7 @@ class _EditProductState extends State<EditProduct> {
                       imageUrl: _editProduct.imageUrl,
                       content: _editProduct.content,
                       id: _editProduct.id,
-                      isFavorite: _editProduct.isFavorite
-                  );
+                      isFavorite: _editProduct.isFavorite);
                 },
                 validator: (value) {
                   if (value.isEmpty) {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'product.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProductProvider with ChangeNotifier {
   List<product> _items = [
@@ -54,30 +56,45 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void addProduct(product prod) {
+  Future<void> addProduct(product prod) async {
+    const url = 'https://flutterhttp-e85f8.firebaseio.com/products.json';
+
+    final response=await http
+        .post(url,
+        body: json.encode({
+          'title': prod.title,
+          'description': prod.content,
+          'imageUrl': prod.imageUrl,
+          'price': prod.price,
+          'isFavorite': prod.isFavorite,
+        })
+    );
     final newProduct = product(
         title: prod.title,
-        id: DateTime.now().toString(),
+        id: json.decode(response.body)['name'],
         content: prod.content,
         imageUrl: prod.imageUrl,
         price: prod.price);
-    _items.add(newProduct);
-
+        _items.add(newProduct);
     notifyListeners();
+
   }
+
 
   product findById(String id) {
     return _items.firstWhere((prod) => prod.id == id);
   }
-  void updateProduct(String id,product newProduct){
 
-    final prodIndex=_items.indexWhere((prod)=> prod.id==id);
-    if(prodIndex>=0){
-    _items[prodIndex]=newProduct;
+  void updateProduct(String id, product newProduct) {
+    final prodIndex = _items.indexWhere((prod) => prod.id == id);
+    if (prodIndex >= 0) {
+      _items[prodIndex] = newProduct;
+      notifyListeners();
+    }
+  }
+
+  void deleteProduct(String id) {
+    _items.removeWhere((prod) => prod.id == id);
     notifyListeners();
-}}
-void deleteProduct(String id){
-    _items.removeWhere((prod)=>prod.id==id);
-    notifyListeners();
-}
+  }
 }
