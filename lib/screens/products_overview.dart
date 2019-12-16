@@ -6,7 +6,29 @@ import '../widgets/badge.dart';
 import '../providers/cart.dart';
 import '../widgets/app_drawer.dart';
 
-class products_overview extends StatelessWidget {
+class products_overview extends StatefulWidget {
+  @override
+  _products_overviewState createState() => _products_overviewState();
+}
+
+class _products_overviewState extends State<products_overview> {
+  var _isInit=true;
+  var _isLoading=false;
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<ProductProvider>(context).fetchAndSetProduct().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
   @override
   Widget build(BuildContext context) {
     final productItem = Provider.of<ProductProvider>(context, listen: false);
@@ -54,7 +76,7 @@ class products_overview extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
-      body: new ProductsGrid(),
+      body: Center(child: _isLoading ? CircularProgressIndicator(): ProductsGrid()),
     );
   }
 }

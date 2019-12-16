@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../widgets/userproduct_item.dart';
 import '../widgets/app_drawer.dart';
 class UserProduct extends StatelessWidget {
+  Future<void> _refreshProducts(BuildContext context) async{
+    await Provider.of<ProductProvider>(context).fetchAndSetProduct();
+  }
   @override
   Widget build(BuildContext context) {
     final productData=Provider.of<ProductProvider>(context);
@@ -18,21 +21,26 @@ class UserProduct extends StatelessWidget {
        ],
      ),
       drawer: AppDrawer() ,
-      body: Padding(padding: EdgeInsets.all(8),
-      child: ListView.builder(
-        itemCount: productData.items.length,
-        itemBuilder: (context,index)=>Column(
-          children: <Widget>[
-            UserItem(
-              id: productData.items[index].id ,
-              title: productData.items[index].title,
-              imageUrl: productData.items[index].imageUrl,
-            ),
-            Divider()
-          ],
-        ),
+      body: RefreshIndicator (
+        onRefresh:(){
+          return _refreshProducts(context);
+        },
+        child: Padding(padding: EdgeInsets.all(8),
+        child: ListView.builder(
+          itemCount: productData.items.length,
+          itemBuilder: (context,index)=>Column(
+            children: <Widget>[
+              UserItem(
+                id: productData.items[index].id ,
+                title: productData.items[index].title,
+                imageUrl: productData.items[index].imageUrl,
+              ),
+              Divider()
+            ],
+          ),
 
-      ),),
+        ),),
+      ),
     );
   }
 }
