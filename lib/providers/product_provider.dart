@@ -57,7 +57,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> addProduct(product prod) async {
-    const url = 'https://flutterhttp-e85f8.firebaseio.com/products.json';
+    const url = 'https://flutterhttp-e85f8.firebaseio.com/products';
 
     final response=await http
         .post(url,
