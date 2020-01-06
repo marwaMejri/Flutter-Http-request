@@ -1,3 +1,6 @@
+import 'package:app3/providers/auth.dart';
+import 'package:app3/screens/authentification_screen.dart';
+import 'package:app3/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'screens/products_overview.dart';
 import 'screens/product_details.dart';
@@ -17,27 +20,47 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(
-          value: ProductProvider(),
+        ChangeNotifierProvider.value(value: Auth()),
+        ChangeNotifierProxyProvider<Auth, ProductProvider>(
+          // ignore: deprecated_member_use
+          builder: (ctx, auth, previousProducts) => ProductProvider(
+              auth.token,
+              previousProducts == null ? [] : previousProducts.items,
+              auth.userId),
         ),
         ChangeNotifierProvider.value(value: Cart()),
-        ChangeNotifierProvider.value(value: Orders()),
-      ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          fontFamily: 'lato',
-          primarySwatch: Colors.indigo,
-          accentColor: Colors.red,
+        ChangeNotifierProxyProvider<Auth, Orders>(
+          // ignore: deprecated_member_use
+          builder: (ctx, auth, previousOrder) => Orders(auth.token,
+              previousOrder == null ? [] : previousOrder.orders, auth.userId),
         ),
-        home: products_overview(),
-        routes: {
-          '/productDetails': (context) => ProductDetails(),
-          '/cartScreen': (context) => CartScreen(),
-          '/orders': (context) => OrderScreen(),
-          '/userproduct': (context) => UserProduct(),
-          '/editProduct':(context)=> EditProduct(),
-        },
+      ],
+      child: Consumer<Auth>(
+        builder: (context, auth, _) => MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            fontFamily: 'lato',
+            primarySwatch: Colors.purple,
+            accentColor: Colors.red,
+          ),
+          home: auth.isAuth
+              ? products_overview()
+              : FutureBuilder(
+                  future: auth.tryAutoLogin(),
+                  builder: (context, snapshot) =>
+                      snapshot.connectionState == ConnectionState.waiting
+                          ? SplashScreen()
+                          : AuthScreen(),
+                ),
+          routes: {
+            '/productDetails': (context) => ProductDetails(),
+            '/cartScreen': (context) => CartScreen(),
+            '/orders': (context) => OrderScreen(),
+            '/userproduct': (context) => UserProduct(),
+            '/editProduct': (context) => EditProduct(),
+            '/authScreen': (context) => AuthScreen()
+          },
+        ),
       ),
     );
   }
