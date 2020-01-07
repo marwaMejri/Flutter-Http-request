@@ -37,7 +37,6 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<Auth>(
         builder: (context, auth, _) => MaterialApp(
-          title: 'Flutter Demo',
           theme: ThemeData(
             fontFamily: 'lato',
             primarySwatch: Colors.purple,
